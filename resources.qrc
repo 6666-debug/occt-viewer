@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/app.ico</file>
+        <file>resources/samples/as1_motor.step</file>
+    </qresource>
+</RCC>

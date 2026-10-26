@@ -1,0 +1,25 @@
+# 构建产物
+build*/
+dist/
+
+# Qt Creator / Visual Studio 用户文件
+*.user
+*.user.*
+CMakeLists.txt.user*
+.qtcreator/
+
+# 二进制
+*.exe
+*.dll
+*.obj
+*.pdb
+*.lib
+*.exp
+*.ilk
+
+# 旧版本源码备份（保留在本地，不纳入版本库）
+backup/
+
+# 系统文件
+Thumbs.db
+.DS_Store

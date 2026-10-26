@@ -1,0 +1,13 @@
+# 统一换行：源码用 LF（MSVC / Qt 均正常），避免 Windows 上 CRLF 转换噪音
+* text=auto eol=lf
+
+# 二进制/资源文件不做文本转换
+*.ico   -text
+*.png   -text
+*.step  -text
+*.stp   -text
+*.exe   -text
+*.dll   -text
+
+# PowerShell 脚本保持 UTF-8 BOM（Windows PowerShell 5.1 需要 BOM 才能正确解析中文）
+*.ps1   text eol=crlf
