@@ -207,6 +207,13 @@ ctest --test-dir build-msvc -C Release --output-on-failure
 - **UTF-8 无 BOM 源码**：中文注释在 MSVC 下需显式 `/utf-8`，否则按 GBK 解析会报 C2001/C4819。
 - **`resources.qrc` 与 `qt_add_resources` 不能同时参与构建**，否则资源重复注册；本项目用 `qt_add_resources`，`resources.qrc` 仅作为等价清单保留。
 
+## 版本库约定
+
+- 入库内容：`src/`、`resources/`（含 837 KB 示例 STEP，**必须入库**，否则内嵌资源缺失会导致启动加载失败）、`tests/`、`screenshots/`、`CMakeLists.txt`、`deploy.ps1`、`README.md`
+- 不入库（`.gitignore`）：`build*/`、`build-dist/`、`dist/`、`backup/`、`.qtcreator/`、`*.exe`、`*.dll`、`*.obj`、`*.pdb`
+- `.gitattributes`：源码统一 LF，`.ico/.png/.step/.exe/.dll` 标记为二进制不做换行转换，`*.ps1` 保留 CRLF（Windows PowerShell 5.1 需要 UTF-8 BOM）
+- 克隆后重建可执行版本：`powershell -ExecutionPolicy Bypass -File deploy.ps1`（自动生成 `dist/`）
+
 ## 许可证
 
 示例模型 `as1_motor.step` 来自 OpenCASCADE 官方数据集，遵循其原始许可；其余代码可自由用于学习与展示。
