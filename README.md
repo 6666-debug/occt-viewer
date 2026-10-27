@@ -212,6 +212,7 @@ ctest --test-dir build-msvc -C Release --output-on-failure
 - **`moc` 与无 `Q_OBJECT` 类**：窗口与视图类均不使用信号槽（改用 `std::function` 回调），因此不需要 `Q_OBJECT`，也避免了 moc 对头文件包含顺序的额外要求。
 - **UTF-8 无 BOM 源码**：中文注释在 MSVC 下需显式 `/utf-8`，否则按 GBK 解析会报 C2001/C4819。
 - **`resources.qrc` 与 `qt_add_resources` 不能同时参与构建**，否则资源重复注册；本项目用 `qt_add_resources`，`resources.qrc` 仅作为等价清单保留。
+- **内嵌 STEP 需要可写的解包目录**：OCCT 的 `STEPCAFControl_Reader::ReadFile()` 只接受真实路径，qrc 资源必须先落到磁盘。程序按「系统临时目录 → `AppData` 缓存 → exe 同级 `cache/`」逐级回退，任一可用即加载成功；受限环境（临时目录被安全策略/沙箱锁死）下仍能打开内嵌示例，日志会打印 `[CACHE] 解包目录：…`。
 
 ## 版本库约定
 

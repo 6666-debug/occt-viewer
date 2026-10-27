@@ -11,7 +11,10 @@
 #include <QWheelEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
+#include <QStandardPaths>
 #include <QTemporaryDir>
+#include <memory>
 #include <cmath>
 #include <algorithm>
 
@@ -115,26 +118,58 @@ int OcctViewport::safePixelSize(int logical, qreal dpr)
 // ============================================================
 // XCAF STEP 加载
 // ============================================================
+namespace {
+
+// 为内嵌 STEP 资源找一个可写的解包目录。
+// 依次尝试：系统临时目录 → 用户应用数据目录 → exe 同级 cache 目录。
+// 某些受限环境（临时目录被清理策略/安全软件/沙箱锁死）下前者不可写，
+// 逐级回退可以保证「内嵌示例模型」在任何机器上都能加载。
+std::unique_ptr<QTemporaryDir> createExtractionDir()
+{
+    QStringList bases;
+    bases << QDir::tempPath();
+    const QString appData = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    if (!appData.isEmpty()) bases << appData + QStringLiteral("/cache");
+    bases << QCoreApplication::applicationDirPath() + QStringLiteral("/cache");
+
+    for (const QString &base : bases) {
+        if (base.isEmpty()) continue;
+        if (!QDir().mkpath(base)) continue;
+        auto dir = std::make_unique<QTemporaryDir>(QDir(base).filePath(QStringLiteral("occt-viewer-XXXXXX")));
+        if (dir->isValid()) {
+            qInfo().noquote() << QStringLiteral("[CACHE] 解包目录：") << dir->path();
+            return dir;
+        }
+        qWarning().noquote() << QStringLiteral("[CACHE] 不可写，跳过：") << base;
+    }
+    return nullptr;
+}
+
+} // namespace
+
 bool OcctViewport::loadStepXCAF(const QString &fileName)
 {
     // 支持 Qt 资源路径（":/..."）与 qrc: 前缀：OCCT 的 STEP 读取器只能打开真实
     // 文件系统路径，所以先把内嵌资源释放到临时目录，再交给 OCCT 加载。
-    QTemporaryDir tempDir;
+    std::unique_ptr<QTemporaryDir> tempDir;
     QString sourcePath = fileName;
 
     if (fileName.startsWith(QLatin1Char(':')) || fileName.startsWith(QLatin1String("qrc:"))) {
-        if (!tempDir.isValid()) {
+        tempDir = createExtractionDir();
+        if (!tempDir) {
             if (m_messageCallback) m_messageCallback(QStringLiteral("无法创建临时目录，内嵌模型加载失败"));
             return false;
         }
         QFile in(fileName);
         if (!in.open(QIODevice::ReadOnly)) {
+            qWarning().noquote() << QStringLiteral("[LOAD-FAIL] 无法读取内嵌模型：") << fileName;
             if (m_messageCallback) m_messageCallback(QStringLiteral("无法读取内嵌模型：%1").arg(fileName));
             return false;
         }
-        const QString extracted = tempDir.filePath(QFileInfo(fileName).fileName());
+        const QString extracted = tempDir->filePath(QFileInfo(fileName).fileName());
         QFile out(extracted);
         if (!out.open(QIODevice::WriteOnly)) {
+            qWarning().noquote() << QStringLiteral("[LOAD-FAIL] 无法写入临时文件：") << extracted;
             if (m_messageCallback) m_messageCallback(QStringLiteral("无法写入临时文件：%1").arg(extracted));
             return false;
         }
@@ -154,8 +189,14 @@ bool OcctViewport::loadStepXCAF(const QString &fileName)
     reader.SetLayerMode(true);
 
     IFSelect_ReturnStatus status = reader.ReadFile(sourcePath.toStdString().c_str());
-    if (status != IFSelect_RetDone) return false;
-    if (!reader.Transfer(doc)) return false;
+    if (status != IFSelect_RetDone) {
+        qWarning().noquote() << QStringLiteral("[LOAD-FAIL] ReadFile 状态=%1 路径=").arg(int(status)) << sourcePath;
+        return false;
+    }
+    if (!reader.Transfer(doc)) {
+        qWarning().noquote() << QStringLiteral("[LOAD-FAIL] Transfer 失败 路径=") << sourcePath;
+        return false;
+    }
 
     m_context->RemoveAll(Standard_False);
     m_context->ClearSelected(Standard_False);
