@@ -8,6 +8,7 @@
 [![Qt](https://img.shields.io/badge/Qt-6.11.2-41cd52.svg)](https://www.qt.io/)
 [![OpenCASCADE](https://img.shields.io/badge/OpenCASCADE-7.8.0-1f6feb.svg)](https://dev.opencascade.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078d4.svg)](#环境要求)
+[![repo-check](https://github.com/6666-debug/occt-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/6666-debug/occt-viewer/actions/workflows/ci.yml)
 
 ![主界面](screenshots/main.png)
 
