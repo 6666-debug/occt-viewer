@@ -4,6 +4,11 @@
 
 使用 XCAF 完整读取装配结构、颜色与名称，提供零件树、几何测量、3D 标注、测量历史导出与实时剖切。
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Qt](https://img.shields.io/badge/Qt-6.11.2-41cd52.svg)](https://www.qt.io/)
+[![OpenCASCADE](https://img.shields.io/badge/OpenCASCADE-7.8.0-1f6feb.svg)](https://dev.opencascade.org/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078d4.svg)](#环境要求)
+
 ![主界面](screenshots/main.png)
 
 > 上图为程序实际运行的截图（内嵌的 `as1_motor.step` 示例模型，39 个零件）。程序通过 `--screenshot` 从 OCCT 的帧缓冲中直接取 3D 图像，再与 Qt 界面合成 —— 不受驱动/DPI/远程桌面影响。
@@ -80,9 +85,14 @@ untitled2/
 │   └── tst_measure.cpp     # Qt Test：BRepExtrema_DistShapeShape 距离/包围盒测试
 ├── screenshots/
 │   ├── main.png            # 主界面截图
+│   ├── measure.png         # 测量特写截图
 │   └── app_icon.png        # 应用图标预览
+├── tools/
+│   └── check_repo.py       # 仓库自检（CI 与提交前校验共用）
+├── .github/workflows/ci.yml # GitHub Actions：push/PR 时跑仓库自检
 ├── deploy.ps1              # 一键打包脚本（build + windeployqt + 复制 OCCT DLL）
 ├── CMakeLists.txt
+├── LICENSE                 # MIT
 └── README.md
 ```
 
@@ -231,6 +241,14 @@ ctest --test-dir build-msvc -C Release --output-on-failure
 - `.gitattributes`：源码统一 LF，`.ico/.png/.step/.exe/.dll` 标记为二进制不做换行转换，`*.ps1` 保留 CRLF（Windows PowerShell 5.1 需要 UTF-8 BOM）
 - 克隆后重建可执行版本：`powershell -ExecutionPolicy Bypass -File deploy.ps1`（自动生成 `dist/`）
 
+## 持续集成
+
+`.github/workflows/ci.yml` 在每次 push / PR 时跑 `tools/check_repo.py`（Linux runner，秒级）：校验关键文件齐全、`src/` 源码 UTF-8 无 BOM 且 LF、include guard 正确、无 `Q_OBJECT`、`CMakeLists.txt` 的源码与资源清单和磁盘一致、README 图片与 `resources.qrc` 引用的文件都存在。
+
+完整编译需要 Qt 6 + OpenCASCADE 7.8 的 Windows 环境，因此不在 CI 里做重型构建；提交前请在本地跑 `deploy.ps1` 与 `ctest`。
+
 ## 许可证
 
-示例模型 `as1_motor.step` 来自 OpenCASCADE 官方数据集，遵循其原始许可；其余代码可自由用于学习与展示。
+代码以 **MIT** 许可发布，见 [LICENSE](LICENSE)。
+
+示例模型 `as1_motor.step` 来自 OpenCASCADE 官方数据集，遵循其原始许可；`dist/` 绿色包内含 Qt 6 与 OpenCASCADE 7.8 的运行时组件，分别遵循 Qt（LGPLv3/GPLv3/商业）与 OCCT（LGPL 2.1 + 例外条款）的许可。

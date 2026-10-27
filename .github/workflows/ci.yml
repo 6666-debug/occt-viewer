@@ -1,0 +1,27 @@
+name: repo-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: 仓库自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 文件齐全 / 编码 / include guard / CMake 清单一致性
+        run: python tools/check_repo.py
+
+      # 完整编译需要 Windows + Qt 6 + OpenCASCADE 7.8（见 README「环境要求」），
+      # 这里不做重型的二进制构建；提交前请本地跑 deploy.ps1 与 ctest。
