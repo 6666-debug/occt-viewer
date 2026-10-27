@@ -185,6 +185,16 @@ powershell -ExecutionPolicy Bypass -File deploy.ps1
 
 打包完成后直接双击 `dist/untitled2.exe` 即可运行（可在无 Qt 环境的机器上验证：把 `PATH` 清空后启动）。
 
+需要分发的绿色压缩包时，把 `dist/` 打成 zip 即可（约 60 MB）：
+
+```powershell
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory("dist", "release/occt-viewer-v1.0.0-win64.zip",
+    [System.IO.Compression.CompressionLevel]::Optimal, $false)
+```
+
+解压后双击 `untitled2.exe` 运行，无需安装 Qt / OCCT / VC 运行库。
+
 ---
 
 ## 测试
