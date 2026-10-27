@@ -73,6 +73,10 @@ public:
     // 测量自检（--selftest-measure）：在视口内扫描并模拟拾取，验证 5 种测量模式
     QStringList measureSelfTest();
 
+    // 演示模式（--demo-measure）：自动挑两个相距最远的面做一次距离测量，
+    // 生成带 3D 标注（红色高亮面 + 尺寸标签 + 历史表格行）的截图
+    bool autoMeasureDistance();
+
 protected:
     QPaintEngine *paintEngine() const override;
     void showEvent(QShowEvent *) override;

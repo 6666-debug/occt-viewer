@@ -8,6 +8,7 @@
 //    untitled2.exe --screenshot <out.png>       自动截图后退出（README/CI 用）
 //    untitled2.exe --smoke [--screenshot ...]   自检：加载成功退出 0，否则 1
 //    untitled2.exe --selftest-measure           测量自检：模拟拾取，验证 5 种测量
+//    untitled2.exe --demo-measure [--screenshot ...]  自动做一次测量并截图（文档配图用）
 // ============================================================================
 #include <QApplication>
 #include <QDebug>
@@ -31,6 +32,7 @@ int main(int argc, char *argv[])
                                  ? args.at(shotIndex + 1) : QString();
     const bool smokeOnly = args.contains(QStringLiteral("--smoke"));
     const bool selfTestMeasure = args.contains(QStringLiteral("--selftest-measure"));
+    const bool demoMeasure = args.contains(QStringLiteral("--demo-measure"));
 
     // 可选：--view <0..6> 指定标准视角（6 = 等轴测），便于生成展示截图
     int viewMode = -1;
@@ -46,8 +48,15 @@ int main(int argc, char *argv[])
     if (viewMode >= 0) window.setStandardView(viewMode);
 
     // 等窗口布局、OCCT 视口尺寸与首次渲染稳定后再截图
+    if (demoMeasure) {
+        // 先自动做一次测量，留下 3D 标注与历史记录，再截图
+        QTimer::singleShot(1200, &app, [&app, &window]() {
+            const bool ok = window.runDemoMeasure();
+            qInfo().noquote() << QStringLiteral("[DEMO] 自动测量%1").arg(ok ? QStringLiteral("完成") : QStringLiteral("失败"));
+        });
+    }
     if (!shotPath.isEmpty()) {
-        QTimer::singleShot(1500, &app, [&window, shotPath]() {
+        QTimer::singleShot(demoMeasure ? 2400 : 1500, &app, [&window, shotPath]() {
             window.saveScreenshot(shotPath);
             window.close();
         });

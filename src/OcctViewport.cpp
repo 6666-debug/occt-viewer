@@ -1268,3 +1268,71 @@ QStringList OcctViewport::measureSelfTest()
     m_view->Redraw();
     return log;
 }
+
+// ============================================================
+// 演示模式（--demo-measure）：自动挑两个“相距最远”的面做一次面到面距离测量，
+// 留下红色高亮面、3D 尺寸标签与历史表格记录，用于生成 README 展示截图。
+// ============================================================
+bool OcctViewport::autoMeasureDistance()
+{
+    if (m_view.IsNull() || m_context.IsNull() || m_pathToShape.isEmpty())
+        return false;
+
+    setMeasureMode(MeasureMode::Distance);
+
+    struct Candidate { QPoint pos; TopoDS_Shape shape; };
+    QVector<Candidate> candidates;
+    const qreal dpr = devicePixelRatio();
+    const int nx = 13, ny = 13;
+
+    for (int iy = 0; iy < ny && candidates.size() < 12; ++iy) {
+        for (int ix = 0; ix < nx && candidates.size() < 12; ++ix) {
+            const QPoint p(width()  * (2 * ix + 1) / (2 * nx),
+                           height() * (2 * iy + 1) / (2 * ny));
+            TopoDS_Shape picked;
+            try {
+                m_context->MoveTo(p.x() * dpr, p.y() * dpr, m_view, Standard_False);
+                if (!m_context->HasDetected()) continue;
+                picked = m_context->DetectedShape();
+            } catch (Standard_Failure &) {
+                continue;
+            }
+            if (picked.IsNull() || picked.ShapeType() != TopAbs_FACE) continue;
+
+            bool duplicated = false;
+            for (const Candidate &c : candidates) {
+                if (c.shape.TShape() == picked.TShape()) { duplicated = true; break; }
+            }
+            if (duplicated) continue;
+            candidates.append({ p, picked });
+        }
+    }
+
+    if (candidates.size() < 2) return false;
+
+    // 选距离最远的一对面（通常对应装配体的主要外形尺寸，截图更有说服力）
+    double bestDistance = -1.0;
+    int bestI = 0, bestJ = 1;
+    for (int i = 0; i < candidates.size(); ++i) {
+        for (int j = i + 1; j < candidates.size(); ++j) {
+            try {
+                BRepExtrema_DistShapeShape dist(candidates[i].shape, candidates[j].shape);
+                dist.Perform();
+                if (dist.IsDone() && dist.NbSolution() > 0 && dist.Value() > bestDistance) {
+                    bestDistance = dist.Value();
+                    bestI = i;
+                    bestJ = j;
+                }
+            } catch (Standard_Failure &) {
+            }
+        }
+    }
+
+    qInfo().noquote() << QStringLiteral("[DEMO] 候选面 %1 个，选中面间距 %2")
+                                 .arg(candidates.size())
+                                 .arg(bestDistance, 0, 'f', 3);
+
+    doMeasurePick(candidates[bestI].pos);
+    doMeasurePick(candidates[bestJ].pos);
+    return true;
+}

@@ -29,6 +29,8 @@ public:
     bool wasLoadSuccessful() const { return m_loadOk; }
     // 测量自检（--selftest-measure）：转发到视口，返回逐行日志
     QStringList runMeasureSelfTest();
+    // 演示模式（--demo-measure）：自动做一次距离测量，用于生成带标注的截图
+    bool runDemoMeasure();
 
 private:
     void createPartsDock();

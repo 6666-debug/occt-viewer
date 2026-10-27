@@ -88,6 +88,15 @@ QStringList MainWindow::runMeasureSelfTest()
 }
 
 // ============================================================
+// 演示模式（--demo-measure）：自动做一次距离测量，供 README 截图使用
+// ============================================================
+bool MainWindow::runDemoMeasure()
+{
+    if (!m_viewport) return false;
+    return m_viewport->autoMeasureDistance();
+}
+
+// ============================================================
 // 截图：Qt 的 QWidget::grab() 能抓到完整 UI（菜单/工具栏/停靠面板），
 // 但抓不到 OCCT 直接绘制到原生窗口的 3D 内容，因此把 3D 帧缓冲
 // 单独导出后，按视口在窗口中的位置合成回去。

@@ -34,6 +34,11 @@
 - 测量结果实时显示在状态栏，并同步写入「测量历史」表格
 - 支持 **3D 标注**（尺寸线 + 数值标签），可单独清除标注
 
+![测量特写](screenshots/measure.png)
+
+> 距离测量：自动拾取两个零件表面（红色为高亮面），青色为 3D 尺寸标签，右下角同步写入测量历史。
+> 该图由 `untitled2.exe --demo-measure --view 6 --screenshot screenshots/measure.png` 生成。
+
 ### 测量历史
 - 右侧表格记录类型 / 数值 / 详情 / 时间
 - **一键导出 CSV**（UTF-8 带 BOM，Excel 直接打开不乱码）
@@ -126,6 +131,7 @@ cmake --build build-msvc --config Release
 | `--screenshot <file.png>` | 启动后 1.5 s 截图并退出（CI / 文档配图用） |
 | `--smoke` | 冒烟测试：3 s 后退出，模型加载成功返回 `0`，失败返回 `1` |
 | `--selftest-measure` | 测量自检：在视口内自动扫描并模拟拾取，验证 5 种测量模式，全部通过返回 `0` |
+| `--demo-measure` | 自动演示一次距离测量（拾取相距最远的一对面），配合 `--screenshot` 生成文档配图 |
 
 示例（CI 里验证构建可用）：
 
