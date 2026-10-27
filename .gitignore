@@ -1,6 +1,6 @@
 # 构建产物
 build*/
-dist/
+dist*/
 release/
 
 # Qt Creator / Visual Studio 用户文件
